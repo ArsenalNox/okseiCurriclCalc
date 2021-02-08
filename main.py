@@ -1,7 +1,7 @@
-from datetime import date, datetime
+from datetime import datetime
 import sys 
 
-"""
+help = """
 Аргуметы:
     При отсутсвии аргумента выводит:
         номер текущий пары 
@@ -34,7 +34,7 @@ curriculumThurstday = { #Расписание на четверг
         "7": {'start':'18:15', 'end':'19:15'}
         }
 
-timeNow = datetime.now().time()
+timeNow = datetime.now()
 def caclCurrentLess(time):
     #Расчитывает текущую пару или перемену, время до конца 
     if time.strftime("%A") == 'Thursday':
@@ -43,15 +43,27 @@ def caclCurrentLess(time):
     else: 
         #Будни
         currentCurriculum = curriculumReg
-    print('Время сейчас {}'.format(timeNow))
     for x in currentCurriculum:
-        now = datetime.now()
-        formattedStart = now.replace(hour=8)
+        #☟ (͡ ° ͜ʖ ͡ °) 
+        start = assembleTime(currentCurriculum[x], True)
+        end = assembleTime(currentCurriculum[x])
+        if timeNow>start and timeNow<end:
+            delta = end-timeNow
+            minutes = int(delta.seconds/60)
+            print('Сейчас идёт пара {}\nДо конца пары {} min\nКонец в {}'.format(x, str(minutes), currentCurriculum[x]['end']))
+            return
+    first = assembleTime(currentCurriculum["1"], True)
+    last = assembleTime(currentCurriculum[str(len(currentCurriculum))])
+    if timeNow>first and timeNow<last:
+        print('Сейчас перемена')
+    if timeNow>first and timeNow>last:
+        print('Пары кончились')
+    if timeNow<first and timeNow<last:
+        print('Пары ещё не начались')
 
-    print('До конца пары №6 12 минут, конец в 18:05')
-    print('До конца перемены: 12 минут, Пара №6 начнётся в 16:35')
 
 def printCurriculum(type):
+    print('Cейчас {}'.format(timeNow))
     #Выводит расписание 
     if   type == 'reg':
         #Обычное + чет
@@ -67,14 +79,19 @@ def printCurriculum(type):
         print('Четверг')
         for para in curriculumThurstday:
             print("{}: {} - {}".format(para, curriculumThurstday[para]['start'], curriculumThurstday[para]['end']) )
-
-    elif type == 'short':
-        #Сокращенное 
-        print('short')
-
+ 
     elif type == 'now':
         #Полное 
         caclCurrentLess(timeNow)
+
+def assembleTime(para, start=False):
+    #Собирает объект datetime 
+    if start:
+        now = datetime.now()
+        return now.replace(hour=int(para['start'].split(":")[0]), minute=int(para['start'].split(":")[0]))
+    else:
+        now = datetime.now()
+        return now.replace(hour=int(para['end'].split(":")[0]), minute=int(para['end'].split(":")[0]))
 
 arguments = sys.argv
 arguments.pop(0)
@@ -91,12 +108,10 @@ if 'lr' in arguments:
 if 'lt' in arguments:
     listType='now'
     printCurr = True
-    
-if 'ls' in arguments:
-    listType='short'
-    printCurr=True
 
-if printCurr:
+if 'h' in arguments:
+    print(help)
+elif printCurr:
     printCurriculum(listType)
 else:
     printCurriculum('now')
