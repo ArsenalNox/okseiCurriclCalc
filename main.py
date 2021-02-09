@@ -44,26 +44,37 @@ def caclCurrentLess(time):
         #Будни
         currentCurriculum = curriculumReg
     for x in currentCurriculum:
-        #☟ (͡ ° ͜ʖ ͡ °) 
+        #(͡ ° ͜ʖ ͡ °) 
         start = assembleTime(currentCurriculum[x], True)
-        end = assembleTime(currentCurriculum[x])
+        end = assembleTime(currentCurriculum[x], False)
         if timeNow>start and timeNow<end:
             delta = end-timeNow
-            minutes = int(delta.seconds/60)
+            minutes = round(int(delta.seconds/60))
             print('Сейчас идёт пара {}\nДо конца пары {} min\nКонец в {}'.format(x, str(minutes), currentCurriculum[x]['end']))
             return
     first = assembleTime(currentCurriculum["1"], True)
     last = assembleTime(currentCurriculum[str(len(currentCurriculum))])
-    if timeNow>first and timeNow<last:
-        print('Сейчас перемена')
+    if timeNow>first and timeNow<last: 
+        for x in currentCurriculum: #Поиск следующий пары 
+            nextPara = assembleTime(currentCurriculum[x], True) #Парсим начало
+            if nextPara>timeNow: #Первая пара, которая начинается после текущего времени = время до конца перемены 
+                delta = nextPara-timeNow
+                minutes = round(int(delta.seconds/60))
+                print('Сейчас перемена перед парой {}\nДо конца перемены {} min\nНачало в {}'.format(x, minutes,currentCurriculum[x]['start']))
+                return
+        print('ERROR')
+        return
     if timeNow>first and timeNow>last:
         print('Пары кончились')
+        return
     if timeNow<first and timeNow<last:
-        print('Пары ещё не начались')
+        delta = assembleTime(currentCurriculum['1']['start']) - timeNow
+        print('Пары ещё не начались\nДо начала первой пары {}'.format(delta))
+        return
 
 
 def printCurriculum(type):
-    print('Cейчас {}'.format(timeNow))
+    print('{}'.format(timeNow))
     #Выводит расписание 
     if   type == 'reg':
         #Обычное + чет
@@ -88,15 +99,15 @@ def assembleTime(para, start=False):
     #Собирает объект datetime 
     if start:
         now = datetime.now()
-        return now.replace(hour=int(para['start'].split(":")[0]), minute=int(para['start'].split(":")[0]))
+        return now.replace(hour=int(para['start'].split(":")[0]), minute=int(para['start'].split(":")[1]))
     else:
         now = datetime.now()
-        return now.replace(hour=int(para['end'].split(":")[0]), minute=int(para['end'].split(":")[0]))
+        return now.replace(hour=int(para['end'].split(":")[0]), minute=int(para['end'].split(":")[1]))
 
 arguments = sys.argv
 arguments.pop(0)
 printCurr = False 
-
+listType = 'none'
 if 'l'  in arguments:
     listType='full'
     printCurr = True
